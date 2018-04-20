@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Beacon Faker</title>
+    </head>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+        function sendMessage() {
+            socket.emit('sendMessage', {"beacon_id": document.getElementById('bid').value,
+                                        "scanner_id": document.getElementById('sid').value,
+                                        "time": new Date()});
+        };
+    </script>
+    <body>
+        <!-- <input id='test' type='text'>
+        <button type='button' onClick='sendMessage()'>Send Message</button> -->
+        <form>
+            Beacon ID:
+            <!-- <input type='text' id='bid' name='beaconid' value='123'><br> -->
+            <select name='beaconid' id='bid'>
+                <option value='123'>123</option>
+                <option value='456'>456</option>
+                <option value='789'>789</option>
+                <option value='987'>987</option>
+            </select><br>
+            Scanner ID:
+            <!-- <input type='text' id='sid' name='scannerid' value='9'><br> -->
+            <select name='scannerid' id='sid'>
+                    <option value='1'>1</option>
+                    <option value='2'>2</option>
+                    <option value='3'>3</option>
+            </select><br>
+            <input type='submit' value='Submit' onClick='sendMessage(); return false;'>
+        </form>
+        <a href='schedule'>View example schedule</a>
+    </body>
+</html>

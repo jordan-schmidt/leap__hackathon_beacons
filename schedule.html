@@ -1,0 +1,116 @@
+<html>
+<head>
+    <link type="text/css" rel="stylesheet" href="/css/schedule.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        var socket = io();
+        var chartDate = new Date();
+        chartDate.setUTCHours(0,0,0,0);
+        var dataList;
+
+        socket.emit('requestDataTable', chartDate);
+        // sent by app.js as response to requestDataTable
+        socket.on('requestDataTable', function(data) {
+            dataList = data;
+        });
+        // sent by app.js as response to updateDataTable
+        socket.on('updateDataTable', function(data) {
+            dataList = data;
+            drawChart();
+        });
+
+        google.charts.load('current', {'packages':['timeline']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            var container = document.getElementById('chart_div');
+
+            // if dataList is empty, directory does not exist, therefore no data is available
+            if (dataList === undefined || dataList.length == 0) {
+                container.innerHTML = '<h3 class="error_header">No data available for selected date.</h3>';
+                setPageElements();
+                return;
+            }
+
+            var chart = new google.visualization.Timeline(container);
+            var chartInfo = setDataAndOptions(dataList);
+
+            chart.draw(chartInfo.data, chartInfo.options);
+            setPageElements();
+        }
+
+        function setDataAndOptions(dataList) {
+            var labels = ['Scanner ID', 'Associate ID', { type: 'date', id: 'Start'}, { type: 'date', id: 'End'}]
+            dataList.unshift(labels);
+            
+            // arrayToDataTable used because JSON converts new Date() to a string, see https://developers.google.com/chart/interactive/docs/datesandtimes#datestring
+            var data = google.visualization.arrayToDataTable(dataList);
+
+            var options = {
+                height: 350,
+                timeline: {
+                    groupByRowLabel: true,
+                    barLabelStyle: {fontName: 'Trebuchet MS', fontSize: '14'},
+                    rowLabelStyle: {fontName: 'Trebuchet MS', fontSize: '18'}
+                },
+                hAxis: {
+                    //TODO: can't hardcode these, but min/max value for history axis
+                    minValue: new Date(chartDate.valueOf()+ 1000*60*60*15), //date + 15 hours = 8am
+                    maxValue: new Date(chartDate.valueOf() + 1000*60*60*24), //date + 24 hours = 5pm
+                    gridlines: {
+                        count: 1
+                    },
+                    ticks: 1
+                },
+                // backgroundColor: '#005A7E',
+                colors: ['#F28237', '#6AC4C5', '#C0D25D', '#008EAE', '#EDAF40']
+            };
+
+            return {data: data, options: options}
+        };
+
+        function changeDate() {
+            chartDate = new Date(document.getElementById('date').value)
+            socket.emit('updateDataTable', chartDate);
+        };
+
+        // initialize page elements, datepicker, dateheader, etc.
+        function setPageElements() {
+            var datePicker = document.getElementById('date');
+            var dateHeader = document.getElementById('date_header');
+            
+            // initialize datepicker
+            datePicker.valueAsDate = chartDate;
+            // would work except time zone makes it show wrong day
+            chartDate.setUTCHours(8,0,0,0);
+            dateHeader.innerHTML = chartDate.toDateString();
+            // dateHeader.innerHTML = datePicker.value;
+        };
+    </script>
+    <title>Beacon Schedule</title>
+</head>
+
+<body>
+    <h2>Beacon Schedule</h2>
+    <h3 id='date_header'>2018-XX-YY</h3>
+    <div id="chart_div"></div>
+    <form>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">
+                    <span class="fa fa-calendar"></span>
+                </span>
+            </div>
+            <input id="date" type="date" aria-describedby="addon1">
+            <div class="input-group-append">
+                <input type='submit' class="btn btn-default" value='Submit' onClick='changeDate(); return false;'>
+            </div>
+        </div>
+    </form>
+    <a href='/'>Back to beacon</a>
+</body>
+</html>

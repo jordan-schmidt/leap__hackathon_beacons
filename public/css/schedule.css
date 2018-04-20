@@ -1,0 +1,23 @@
+body {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    /* background-color: #005A7E !important; */
+}
+
+h2 {
+    text-align: center;
+    font-weight: bold;
+}
+
+h3 {
+    text-align: center;
+}
+
+#chart_div {
+    margin-left: 10%;
+    margin-right: 10%;
+    background-color: white;
+}
+
+.error_header {
+    color: red;
+}
